@@ -7,6 +7,7 @@
 namespace radi
 {
 	class RiakFile;
+	class RiakFileSet;
 
 	class RiakFS
 	{
@@ -18,16 +19,17 @@ namespace radi
 		bool		Connect();
 		void		Close();
 
+		void		Release();
+
 		void		SetServer(const char* server);
 		void		SetPort(const char* port);
 
 		RiakFile*	GetRoot();
 		RiakFile*	GetRiakFile(const char* bucket, const char* key);
 		RiakFile*	GetRiakFile(riak_binary* bucket, riak_binary* key);
-		RiakFile*	GetRiakFile(const char* bucket, const char* name, const char* parent_key);
-		//RiakFileSet*	GetChildren();
+		RiakFile*	GetRiakFile(const char* bucket, const char* parent_key, const char* name);
 
-		void		Release();
+		RiakFileSet*	ListFiles(const char* dir_key);
 
 	public:
 		void	GetBuckets();

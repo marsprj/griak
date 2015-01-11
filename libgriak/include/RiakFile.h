@@ -17,6 +17,9 @@ namespace radi
 		const char*	GetName();
 		void		SetName(const char* name);
 
+		const char*	GetDataType() const;
+		const char*	GetDataStore() const;
+
 		void		Release();
 
 	public:
@@ -24,10 +27,14 @@ namespace radi
 
 	private:
 		void		SetIsFolder(const char* val);
+		void		SetDataType(const char* val, size_t len);
+		void		SetDataStore(const char* val, size_t len);
 
 	private:
 		bool		m_isFolder;
 		std::string	m_name;
+		std::string	m_data_type;
+		std::string	m_data_store;
 
 		riak_connection *m_cxn;
 		riak_config 	 *m_cfg;

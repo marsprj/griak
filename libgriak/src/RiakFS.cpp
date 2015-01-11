@@ -1,5 +1,6 @@
 #include "RiakFS.h"
 #include "RiakFile.h"
+#include "RiakFileSet.h"
 
 #include <limits.h>
 
@@ -195,14 +196,14 @@ namespace radi
 			return NULL;
 		}
 
-		{	// print key
-			char output[10240];
-			riak_print_state print_state;
-			riak_print_init(&print_state, output, sizeof(output));
-			riak_get_response_print(&print_state, robj_response);
-			printf("%s\n", output);
+		// {	// print key
+		// 	char output[10240];
+		// 	riak_print_state print_state;
+		// 	riak_print_init(&print_state, output, sizeof(output));
+		// 	riak_get_response_print(&print_state, robj_response);
+		// 	printf("%s\n", output);
 
-		}
+		// }
 
 		riak_int32_t count = riak_get_get_n_content(robj_response);
 		if(!count)
@@ -222,7 +223,7 @@ namespace radi
 		return rf;
 	}
 
-	RiakFile* RiakFS::GetRiakFile(const char* bucket, const char* name, const char* parent_key)
+	RiakFile* RiakFS::GetRiakFile(const char* bucket, const char* parent_key, const char* name)
 	{
 		riak_get_response *p_robj_response = NULL;
 		p_robj_response = GetRiakObjects(bucket, parent_key);
@@ -276,6 +277,62 @@ namespace radi
 		riak_get_response_free(m_cfg, &p_robj_response);
 		
 		return prFile;
+	}
+
+	RiakFileSet* RiakFS::ListFiles(const char* dir_key)
+	{
+		RiakFileSet* files = new RiakFileSet();
+
+		const char* bucket = "rfs";
+		riak_get_response *p_robj_response = NULL;
+		p_robj_response = GetRiakObjects(bucket, dir_key);
+		if(p_robj_response==NULL)
+		{
+			return NULL;
+		}
+
+		riak_int32_t count = riak_get_get_n_content(p_robj_response);
+		if(!count)
+		{
+			riak_get_response_free(m_cfg, &p_robj_response);
+			return NULL;
+		}
+		riak_object** robjs = riak_get_get_content(p_robj_response);
+		riak_object* robj = robjs[0];
+
+		RiakFile* prFile = NULL;
+		riak_binary* rbucket =  NULL;
+		riak_binary* rl_key = NULL;
+		riak_binary* rl_tag = NULL;
+		riak_link* rlink = NULL;
+		riak_error err;
+
+		rbucket = riak_binary_copy_from_string(m_cfg, bucket);
+
+		riak_int32_t nlinks = riak_object_get_n_links(robj);
+		for(riak_uint32_t i=0; i<nlinks; i++)
+		{
+			err = riak_object_get_link(robj, &rlink, i);
+			if(!err)
+			{
+				rl_tag = riak_link_get_tag(rlink);
+				if(!riak_binary_compare_string(rl_tag, "parent"))
+				{
+					rl_key = riak_link_get_key(rlink);
+
+					prFile = GetRiakFile(rbucket, rl_key);
+					if(prFile != NULL)
+					{
+						files->Add(prFile);
+					}
+				}
+			}
+		}
+
+		riak_binary_free(m_cfg, &rbucket);
+		riak_get_response_free(m_cfg, &p_robj_response);
+		
+		return files;
 	}
 
 	riak_get_response* RiakFS::GetRiakObjects(const char* bucket, const char* key)

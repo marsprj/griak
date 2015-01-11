@@ -29,7 +29,7 @@ namespace radi
 
 	void RiakFile::SetIsFolder(const char* val)
 	{
-		m_isFolder = (!strcmp(val,"true"));
+		m_isFolder = (val[0] == 't');
 	}
 
 	const char* RiakFile::GetName()
@@ -45,13 +45,34 @@ namespace radi
 		}
 	}
 
+	void RiakFile::SetDataType(const char* val, size_t len)
+	{
+		m_data_type.assign(val, len);
+	}
+
+	const char* RiakFile::GetDataType() const
+	{
+		return m_data_type.c_str();
+	}
+
+	void RiakFile::SetDataStore(const char* val, size_t len)
+	{
+		m_data_store.assign(val, len);	
+	}
+
+	const char* RiakFile::GetDataStore() const
+	{
+		return m_data_store.c_str();
+	}
+
 	bool RiakFile::Create(riak_connection *rcxn, riak_config *rcfg, riak_object* robj)
 	{		
 		m_cxn = rcxn;
 		m_cfg = rcfg;
 
 		riak_binary* rname = riak_object_get_value(robj);;
-		m_name = (const char*)riak_binary_data(rname);
+		//m_name = (const char*)riak_binary_data(rname);
+		m_name.assign((const char*)riak_binary_data(rname),riak_binary_len(rname));
 
 		riak_error err;
 		riak_pair  *meta = NULL;
@@ -74,6 +95,10 @@ namespace radi
 				if(!riak_binary_compare_string(rkey, "IS_FOLDER"))
 				{
 					SetIsFolder((const char*)riak_binary_data(rval));
+				}
+				else if(!riak_binary_compare_string(rkey, "DATA_TYPE"))
+				{
+					SetDataType((const char*)riak_binary_data(rval), riak_binary_len(rval));
 				}
 				else if(!riak_binary_compare_string(rkey, "DATA_STORAGE_TYPE"))
 				{
