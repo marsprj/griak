@@ -11,6 +11,7 @@ namespace radi
 
 	class RiakFS
 	{
+		friend class RiakTileStore;
 	public:
 		RiakFS();
 		RiakFS(const char* server, const char* port);
@@ -31,12 +32,15 @@ namespace radi
 
 		RiakFileSet*	ListFiles(const char* dir_key);
 
+		riak_get_response*	GetRiakObjects(const char* bucket, const char* key);
+		void		Release(riak_get_response* response);
 	public:
 		void	GetBuckets();
 
+
 	private:
 		riak_connection*	GetConnection();
-		riak_get_response*	GetRiakObjects(const char* bucket, const char* key);
+		
 		riak_get_response*	GetRiakObjects(riak_binary * bucket, riak_binary * key);
 
 		bool			HasRiakObject(const char* bucket, const char* key);

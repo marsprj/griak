@@ -382,6 +382,14 @@ namespace radi
 		return robj_response;
 	}
 
+	void RiakFS::Release(riak_get_response* response)
+	{
+		if(response != NULL)
+		{
+			riak_get_response_free(m_cfg, &response);
+		}
+	}
+
 	bool RiakFS::HasRiakObject(const char* bucket, const char* key)
 	{
 		riak_connection *cxn = GetConnection();

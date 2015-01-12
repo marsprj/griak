@@ -2,7 +2,7 @@
 #include "RiakFile.h"
 #include "RiakFileSet.h"
 
-CPPUNIT_TEST_SUITE_REGISTRATION(RiakFSTest);
+//CPPUNIT_TEST_SUITE_REGISTRATION(RiakFSTest);
 
 void RiakFSTest::setUp() 
 {

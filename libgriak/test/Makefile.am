@@ -11,4 +11,4 @@ griaktest_LDFLAGS=\
 griaktest_LDADD=-lgriak \
 		-lcppunit
 
-griaktest_SOURCES=main.cpp RiakFSTest.cpp
+griaktest_SOURCES=main.cpp RiakFSTest.cpp RiakStoreTest.cpp
