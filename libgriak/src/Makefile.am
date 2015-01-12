@@ -13,4 +13,5 @@ libgriak_la_SOURCES=\
 		RiakFS.cpp \
 		RiakFile.cpp \
 		RiakFileSet.cpp \
+		RiakTileStore.cpp \
 		StringSet.cpp
