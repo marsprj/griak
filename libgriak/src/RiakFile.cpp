@@ -11,7 +11,8 @@ namespace radi
 	m_riak_fs(NULL),
 	m_cxn(NULL),
 	m_cfg(NULL),
-	m_tile_store(NULL)
+	m_tile_store(NULL),
+	m_status(RIAK_FILE_STATUS_COMPLETED)
 	{
 
 	}
@@ -48,6 +49,11 @@ namespace radi
 		return m_isFolder;
 	}
 
+	bool RiakFile::IsRoot()
+	{
+		return !(strcmp(m_key.c_str(), "root"));
+	}
+
 	void RiakFile::SetIsFolder(const char* val)
 	{
 		m_isFolder = (val[0] == 't');
@@ -69,6 +75,21 @@ namespace radi
 	const char* RiakFile::GetKey()
 	{
 		return m_key.c_str();
+	}
+
+	const char* RiakFile::GetStatus()
+	{
+		return m_status.c_str();
+	}
+
+	void RiakFile::SetStatus(const char* status)
+	{
+		m_status  = status;
+	}
+
+	bool RiakFile::IsDeleted()
+	{
+		return !(strcmp(m_status.c_str(), RIAK_FILE_STATUS_DELETED));
 	}
 
 	void RiakFile::SetDataType(const char* val, size_t len)

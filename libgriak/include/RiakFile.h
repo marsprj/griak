@@ -4,6 +4,9 @@
 #include <riak.h>
 #include <string>
 
+#define RIAK_FILE_STATUS_COMPLETED	"COMPLETED"
+#define RIAK_FILE_STATUS_DELETED		"DELETED"
+
 namespace radi
 {
 	class RiakFS;
@@ -16,10 +19,15 @@ namespace radi
 		virtual ~RiakFile();
 	public:
 		bool		IsFolder();
+		bool		IsRoot();
 
 		const char*	GetName();
 		void		SetName(const char* name);
 		const char*	GetKey();
+
+		const char*	GetStatus();
+		void		SetStatus(const char* status);
+		bool		IsDeleted();
 
 		const char*	GetDataType() const;
 		const char*	GetDataStore() const;
@@ -45,10 +53,11 @@ namespace radi
 		std::string	m_key;
 		std::string	m_data_type;
 		std::string	m_data_store;
+		std::string	m_status;
 
 		RiakFS		*m_riak_fs;
 		RiakTileStore	*m_tile_store;
-		
+
 		riak_connection *m_cxn;
 		riak_config 	*m_cfg;
 

@@ -17,6 +17,7 @@ namespace radi
 	public:
 		const char*	GetKey();
 		const char*	GetName();
+		const char*	GetStatus();
 		
 		void		GetTile(const char* t_key);
 		bool		PutTile(const char* t_key, const unsigned char* t_data, size_t size, const char* img_type);

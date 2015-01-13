@@ -34,7 +34,8 @@ namespace radi
 		RiakFile*	GetRiakFile(const char* bucket, const char* parent_key, const char* name);
 
 		RiakFile*	CreateFile(const char* parent_key, const char* f_name, bool is_folder, const char* data_type="PGIS");
-		bool		AddLink(riak_object* r_obj, const char* bucket, const char* key, const char* parent);
+		RiakFile*	Delete(RiakFile* file);
+		bool		AddLink(riak_object* r_obj, const char* bucket, const char* key, const char* tag);
 
 		RiakFileSet*	ListFiles(const char* dir_key);
 
@@ -48,8 +49,11 @@ namespace radi
 		riak_get_response*	GetRiakObjects(const char* bucket, const char* key);
 		riak_get_response*	GetRiakObjects(riak_binary * bucket, riak_binary * key);
 		bool			HasRiakObject(const char* bucket, const char* key);
+		riak_pair*		GetUserMeta(riak_object* r_obj, const char* m_key);
 
 		bool			CreateRiakFile(const char* f_name, const char* f_key, bool is_folder, const char* data_type);
+
+		bool			MoveToTrash(const char* f_key);
 
 	private:
 		std::string	m_riak_server;

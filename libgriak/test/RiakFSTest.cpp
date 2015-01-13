@@ -131,7 +131,8 @@ void RiakFSTest::CreateFile_2()
 	root = m_riak.GetRoot();
 	CPPUNIT_ASSERT(root!=NULL);
 
-	rf = root->CreateFile("mydir3", true);
+	//rf = root->CreateFile("mydir3", true);
+	rf = root->GetFile("mydir3");
 	CPPUNIT_ASSERT(rf!=NULL);
 
 	radi::RiakFile* rf_2 = NULL;
@@ -191,4 +192,18 @@ void RiakFSTest::Riak_Store_Import()
 	CPPUNIT_ASSERT(ret);	
 
 	rf->Release();
+}
+
+void RiakFSTest::RemoveFile()
+{
+	radi::RiakFile* rf = NULL;
+	//rf = m_riak.GetFile("/test/wgs84_vector_2to9_Layers");
+	rf = m_riak.GetFile("/mydir3/tardb3");
+	CPPUNIT_ASSERT(rf!=NULL);
+	printf("[File Name]:%s\n", rf->GetName());
+
+	rf = m_riak.Delete(rf);
+	CPPUNIT_ASSERT(rf!=NULL);
+
+	rf->Release();	
 }

@@ -521,7 +521,7 @@ namespace radi
 		return GetRiakFile("rfs", f_key);
 	}
 
-	bool RiakFS::AddLink(riak_object* r_obj, const char* bucket, const char* key, const char* parent)
+	bool RiakFS::AddLink(riak_object* r_obj, const char* bucket, const char* key, const char* tag)
 	{
 		// set bucket
 		riak_binary* r_bucket = riak_binary_new_shallow(m_cfg, strlen(bucket), (riak_uint8_t*)bucket);
@@ -533,7 +533,7 @@ namespace radi
 		riak_link_set_key(m_cfg, r_link, r_key);
 
 		// set tag
-		riak_binary* r_parent = riak_binary_new_shallow(m_cfg, strlen(parent), (riak_uint8_t*)parent);
+		riak_binary* r_parent = riak_binary_new_shallow(m_cfg, strlen(tag), (riak_uint8_t*)tag);
 		riak_link_set_tag(m_cfg, r_link, r_parent);		
 
 		//-------------------------------------------------------------------------------
@@ -902,15 +902,15 @@ namespace radi
 		riak_put_options_set_return_body(put_options, RIAK_TRUE);
 		err = riak_put(m_riak, r_obj, put_options, &put_response);
 
-		if(!err)
-		{
-			char output[10240];
-			riak_print_state print_state;
-		  	riak_print_init(&print_state, output, sizeof(output));
+		// if(!err)
+		// {
+		// 	char output[10240];
+		// 	riak_print_state print_state;
+		//   	riak_print_init(&print_state, output, sizeof(output));
 
-			riak_put_response_print(&print_state, put_response);
-		              printf("%s\n", output);
-		}
+		// 	riak_put_response_print(&print_state, put_response);
+		//               printf("%s\n", output);
+		// }
 
 		riak_put_options_free(m_cfg, &put_options);
 		riak_put_response_free(m_cfg, &put_response);
@@ -949,11 +949,167 @@ namespace radi
 		return true;
 	}
 
-	//bool RiakFS::AddLink(const char* bucket, const char* key, const char* parent)
-	//{
-	//	return true;
-	//}
+	RiakFile* RiakFS::Delete(RiakFile* file)
+	{
+		if(file==NULL)
+		{
+			return NULL;
+		}
 
+		if(file->IsRoot())
+		{
+			return NULL;
+		}
+
+		riak_get_response* robj_response = NULL;
+		robj_response = GetRiakObjects("rfs", file->GetKey());
+		if(robj_response==NULL)
+		{
+			return NULL;
+		}
+		riak_int32_t count = riak_get_get_n_content(robj_response);
+		if(!count)
+		{
+			riak_get_response_free(m_cfg, &robj_response);
+			return NULL;
+		}
+		riak_object** robjs = riak_get_get_content(robj_response);
+		riak_object* r_obj = robjs[0];
+
+		riak_error err;
+		riak_pair* r_pair = NULL;
+		riak_binary* r_status_key = NULL;
+		riak_binary* r_status = NULL;
+
+		//---------------------------------------------------------------------------------------------------
+		// [meta_data]: set STATUS
+		//---------------------------------------------------------------------------------------------------
+		const char* status_key = "STATUS";
+		r_pair = GetUserMeta(r_obj, status_key);
+		if(r_pair==NULL)
+		{
+			r_pair = riak_object_new_usermeta(m_cfg, r_obj);
+		}		
+		r_status_key = riak_binary_new_shallow(m_cfg, strlen(status_key), (riak_uint8_t*)status_key);
+		err = riak_pair_set_key(m_cfg, r_pair, r_status_key);
+		const char* status = "DELETED";
+		r_status = riak_binary_new_shallow(m_cfg, strlen(status), (riak_uint8_t*)status);
+		err = riak_pair_set_value(m_cfg, r_pair, r_status);
+
+		//---------------------------------------------------------------------------------------------------
+		// [meta_data]: set MODIFY_TIME
+		//---------------------------------------------------------------------------------------------------
+		char c_time[PATH_MAX];
+		sprintf(c_time, "%ld", get_current_time_millis());
+		const char* modify_time_key = "MODIFY_TIME";
+		r_pair = GetUserMeta(r_obj, modify_time_key);
+		if(r_pair==NULL)
+		{
+			r_pair = riak_object_new_usermeta(m_cfg, r_obj);
+		}
+		
+		riak_binary* r_modify_time_key = riak_binary_new_shallow(m_cfg, strlen(modify_time_key), (riak_uint8_t*)modify_time_key);
+		err = riak_pair_set_key(m_cfg, r_pair, r_modify_time_key);
+		riak_binary* r_modify_time = riak_binary_new_shallow(m_cfg, strlen(c_time), (riak_uint8_t*)c_time);
+		err = riak_pair_set_value(m_cfg, r_pair, r_modify_time);
+
+		// put riak_object
+		riak_put_response *put_response = NULL;
+		riak_put_options *put_options = riak_put_options_new(m_cfg);
+		if(put_options==NULL)
+		{
+			
+			riak_put_options_free(m_cfg, &put_options);
+			riak_put_response_free(m_cfg, &put_response);
+
+			riak_binary_free(m_cfg, &r_status_key); 
+			riak_binary_free(m_cfg, &r_status);
+			riak_binary_free(m_cfg, &r_modify_time_key);
+			riak_binary_free(m_cfg, &r_modify_time);
+
+			riak_get_response_free(m_cfg, &robj_response);
+			return NULL;
+		}
+		riak_put_options_set_return_head(put_options, RIAK_TRUE);
+		riak_put_options_set_return_body(put_options, RIAK_TRUE);
+		err = riak_put(m_riak, r_obj, put_options, &put_response);
+		if(err)
+		{
+			printf("[Error]:%s\n", riak_strerror(err));
+		}
+
+		riak_put_options_free(m_cfg, &put_options);
+		riak_put_response_free(m_cfg, &put_response);
+
+		riak_binary_free(m_cfg, &r_status_key); 
+		riak_binary_free(m_cfg, &r_status);
+		riak_binary_free(m_cfg, &r_modify_time_key);
+		riak_binary_free(m_cfg, &r_modify_time);
+
+		riak_get_response_free(m_cfg, &robj_response);
+
+		file->SetStatus(RIAK_FILE_STATUS_DELETED);
+
+		// add to trash
+		MoveToTrash(file->GetKey());
+
+		return file;
+	}
+
+	riak_pair* RiakFS::GetUserMeta(riak_object* r_obj, const char* m_key)
+	{
+		riak_pair* r_pair = NULL;
+		riak_binary* r_key = NULL;
+
+		riak_error err;
+		riak_int32_t n_pair = riak_object_get_n_usermeta(r_obj);
+
+		for(riak_int32_t i=0; i<n_pair; i++)
+		{
+			err = riak_object_get_usermeta(r_obj, &r_pair, i);
+			if(!err)
+			{
+				r_key = riak_pair_get_key(r_pair);
+				if(!riak_binary_compare_string(r_key, m_key))
+				{
+					return r_pair;
+				}
+			}
+		}
+		
+
+		return NULL;
+	}
+		
+
+	bool RiakFS::MoveToTrash(const char* f_key)
+	{
+		if(f_key==NULL)
+		{
+			return false;
+		}
+
+		riak_get_response* robj_response = NULL;
+		robj_response = GetRiakObjects("rfs", f_key);
+		if(robj_response==NULL)
+		{
+			return NULL;
+		}
+		riak_int32_t count = riak_get_get_n_content(robj_response);
+		if(!count)
+		{
+			riak_get_response_free(m_cfg, &robj_response);
+			return NULL;
+		}
+		riak_object** robjs = riak_get_get_content(robj_response);
+		riak_object* r_obj = robjs[0];
+
+		AddLink(r_obj, "rfs", f_key, "parent");
+
+		riak_get_response_free(m_cfg, &robj_response);
+
+		return true;
+	}
 
 	//////////////////////////////////////////////////////////////////////
 	void RiakFS::GetBuckets()
