@@ -72,14 +72,14 @@ namespace radi
 			return;
 		}
 
-		{
-			char output[10240];
-			riak_print_state print_state;
-    			riak_print_init(&print_state, output, sizeof(output));
+		// {
+		// 	char output[10240];
+		// 	riak_print_state print_state;
+		// 	riak_print_init(&print_state, output, sizeof(output));
 
-			riak_get_response_print(&print_state, response);
-                		printf("%s\n", output);
-		}
+		// 	riak_get_response_print(&print_state, response);
+		// 	printf("%s\n", output);
+		// }
 
 		riak_int32_t count = riak_get_get_n_content(response);
 		if(!count)

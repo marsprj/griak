@@ -2,13 +2,13 @@
 #include "RiakFile.h"
 #include "RiakFileSet.h"
 
-CPPUNIT_TEST_SUITE_REGISTRATION(RiakStoreTest);
+//CPPUNIT_TEST_SUITE_REGISTRATION(RiakStoreTest);
 
 void RiakStoreTest::setUp() 
 {
 	printf("setUp\n");
 
-	m_riak.SetServer("192.168.111.104");
+	m_riak.SetServer("192.168.111.88");
 	m_riak.SetPort("8087");
 	if(!m_riak.Connect())
 	{

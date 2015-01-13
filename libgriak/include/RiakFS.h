@@ -30,20 +30,22 @@ namespace radi
 		RiakFile*	GetRiakFile(riak_binary* bucket, riak_binary* key);
 		RiakFile*	GetRiakFile(const char* bucket, const char* parent_key, const char* name);
 
+		RiakFile*	CreateFile(const char* parent_key, const char* f_name, bool is_folder, const char* storage_type);
+		bool		AddLink(riak_object* r_obj, const char* bucket, const char* key, const char* parent);
+
 		RiakFileSet*	ListFiles(const char* dir_key);
 
-		riak_get_response*	GetRiakObjects(const char* bucket, const char* key);
 		void		Release(riak_get_response* response);
 	public:
-		void	GetBuckets();
+		void		GetBuckets();
 
 
 	private:
 		riak_connection*	GetConnection();
-		
+		riak_get_response*	GetRiakObjects(const char* bucket, const char* key);
 		riak_get_response*	GetRiakObjects(riak_binary * bucket, riak_binary * key);
-
 		bool			HasRiakObject(const char* bucket, const char* key);
+		bool			CreateRiakFile(const char* f_name, const char* f_key, bool is_folder, const char* storage_type);
 
 	private:
 		std::string	m_riak_server;
@@ -51,6 +53,7 @@ namespace radi
 
 		riak_connection *m_riak;
 		riak_config 	 *m_cfg;
+		riak_binary	 *m_rfs_bucket;
 
 	};
 

@@ -2,13 +2,13 @@
 #include "RiakFile.h"
 #include "RiakFileSet.h"
 
-//CPPUNIT_TEST_SUITE_REGISTRATION(RiakFSTest);
+CPPUNIT_TEST_SUITE_REGISTRATION(RiakFSTest);
 
 void RiakFSTest::setUp() 
 {
 	printf("setUp\n");
 
-	m_riak.SetServer("192.168.111.104");
+	m_riak.SetServer("192.168.111.88");
 	m_riak.SetPort("8087");
 	if(!m_riak.Connect())
 	{
@@ -92,4 +92,16 @@ void RiakFSTest::ListVectorFileTest()
 	}
 
 	files->Release();
+}
+
+void RiakFSTest::CreateFolder()
+{
+	printf("----------------------------------\n");
+	printf("CreateFolder\n");
+
+	radi::RiakFile* rf = NULL;
+	bool is_folder = true;
+	const char* storage_type = "VALUE";
+	rf = m_riak.CreateFile("root", "mydir",is_folder, storage_type);
+	//rf->Release();
 }
