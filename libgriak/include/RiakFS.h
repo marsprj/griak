@@ -27,6 +27,7 @@ namespace radi
 		void		SetPort(const char* port);
 
 		RiakFile*	GetRoot();
+		RiakFile*	GetFile(const char* path);
 
 		RiakFile*	GetRiakFile(const char* bucket, const char* key);
 		RiakFile*	GetRiakFile(riak_binary* bucket, riak_binary* key);

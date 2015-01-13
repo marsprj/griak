@@ -1,6 +1,7 @@
 #include "RiakFSTest.h"
 #include "RiakFile.h"
 #include "RiakFileSet.h"
+#include "RiakTileStore.h"
 
 CPPUNIT_TEST_SUITE_REGISTRATION(RiakFSTest);
 
@@ -130,8 +131,13 @@ void RiakFSTest::CreateFile_2()
 	root = m_riak.GetRoot();
 	CPPUNIT_ASSERT(root!=NULL);
 
-	rf = root->CreateFile("mydir2", true);
+	rf = root->CreateFile("mydir3", true);
 	CPPUNIT_ASSERT(rf!=NULL);
+
+	radi::RiakFile* rf_2 = NULL;
+	rf_2 = rf->CreateFile("tardb3", false, "PGIS");
+	CPPUNIT_ASSERT(rf_2!=NULL);	
+	rf_2->Release();
 	rf->Release();
 
 	root->Release();
@@ -153,4 +159,36 @@ void RiakFSTest::GetFile_By_File()
 	rf->Release();
 
 	root->Release();	
+}
+
+void RiakFSTest::GetFile_By_Path()
+{
+	printf("----------------------------------\n");
+	printf("GetFile_By_Path\n");
+
+	radi::RiakFile* rf = NULL;
+	//rf = m_riak.GetFile("/test/wgs84_vector_2to9_Layers");
+	rf = m_riak.GetFile("/mydir3/tardb3");
+	CPPUNIT_ASSERT(rf!=NULL);
+	printf("[File Name]:%s\n", rf->GetName());
+	rf->Release();
+}
+
+void RiakFSTest::Riak_Store_Import()
+{
+	radi::RiakFile* rf = NULL;
+	//rf = m_riak.GetFile("/test/wgs84_vector_2to9_Layers");
+	rf = m_riak.GetFile("/mydir3/tardb3");
+	CPPUNIT_ASSERT(rf!=NULL);
+	printf("[File Name]:%s\n", rf->GetName());
+
+	radi::RiakTileStore* tile_store = NULL;
+	tile_store = rf->GetTileStore();
+	CPPUNIT_ASSERT(tile_store!=NULL);
+
+	const char* t_path = "/home/renyc/image/tile.png";
+	bool ret = tile_store->PutTile("7x78x45",t_path);
+	CPPUNIT_ASSERT(ret);	
+
+	rf->Release();
 }

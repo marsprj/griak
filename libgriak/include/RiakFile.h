@@ -7,6 +7,8 @@
 namespace radi
 {
 	class RiakFS;
+	class RiakTileStore;
+
 	class RiakFile
 	{
 	public:
@@ -24,6 +26,8 @@ namespace radi
 
 		RiakFile*	GetFile(const char* f_name);
 		RiakFile*	CreateFile(const char* f_name, bool is_folder, const char* data_type="PGIS");
+
+		RiakTileStore*	GetTileStore();
 
 		void		Release();
 
@@ -43,8 +47,12 @@ namespace radi
 		std::string	m_data_store;
 
 		RiakFS		*m_riak_fs;
+		RiakTileStore	*m_tile_store;
+		
 		riak_connection *m_cxn;
 		riak_config 	*m_cfg;
+
+
 	};
 }
 

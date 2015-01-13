@@ -159,14 +159,14 @@ namespace radi
 			return NULL;
 		}
 
-		{	// print key
-			char output[10240];
-			riak_print_state print_state;
-			riak_print_init(&print_state, output, sizeof(output));
-			riak_get_response_print(&print_state, key_response);
-			printf("%s\n", output);
+		// {	// print key
+		// 	char output[10240];
+		// 	riak_print_state print_state;
+		// 	riak_print_init(&print_state, output, sizeof(output));
+		// 	riak_get_response_print(&print_state, key_response);
+		// 	printf("%s\n", output);
 
-		}
+		// }
 
 		riak_int32_t count = riak_get_get_n_content(key_response);
 		if(!count)
@@ -185,6 +185,49 @@ namespace radi
 
 
 		riak_get_response_free(m_cfg, &key_response);
+
+		return rf;
+	}
+
+	RiakFile* RiakFS::GetFile(const char* path)
+	{
+		if(path==NULL)
+		{
+			return NULL;
+		}
+		if(path[0] != '/')
+		{
+			return NULL;
+		}
+
+		RiakFile* rr = NULL;
+		RiakFile* rf = NULL;
+
+		rr = GetRoot();
+		if(rr == NULL)
+		{
+			return NULL;
+		}
+
+		char* d_path = strdup(path);
+		char* fname = NULL;
+		fname = strtok(d_path, "/");
+		while(fname != NULL)
+		{
+			rf = rr->GetFile(fname);
+			rr->Release();
+
+			if(rf == NULL)
+			{
+				break;
+			}
+
+			rr = rf;
+
+			fname = strtok(NULL, "/");
+		}
+
+		free(d_path);
 
 		return rf;
 	}
@@ -640,7 +683,7 @@ namespace radi
 			riak_object_free(m_cfg, &r_obj);
 			return false;
 		}
-		const char* s_is_folder = is_folder?"true":"fase";
+		const char* s_is_folder = is_folder?"true":"false";
 		riak_binary* r_is_folder = riak_binary_new_shallow(m_cfg, strlen(s_is_folder), (riak_uint8_t*)s_is_folder);
 		if(r_is_folder==NULL)
 		{
@@ -784,7 +827,7 @@ namespace radi
 			const char* status_key = "STATUS";
 			r_status_key = riak_binary_new_shallow(m_cfg, strlen(status_key), (riak_uint8_t*)status_key);
 			err = riak_pair_set_key(m_cfg, r_pair, r_status_key);
-			const char* status = "COMPLETE";
+			const char* status = "COMPLETED";
 			r_status = riak_binary_new_shallow(m_cfg, strlen(status), (riak_uint8_t*)status);
 			err = riak_pair_set_value(m_cfg, r_pair, r_status);
 

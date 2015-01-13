@@ -1,5 +1,6 @@
-#include "RiakFile.h"
 #include "RiakFS.h"
+#include "RiakFile.h"
+#include "RiakTileStore.h"
 
 #include <limits.h>
 
@@ -9,19 +10,37 @@ namespace radi
 	m_isFolder(false),
 	m_riak_fs(NULL),
 	m_cxn(NULL),
-	m_cfg(NULL)
+	m_cfg(NULL),
+	m_tile_store(NULL)
 	{
 
 	}
 
 	RiakFile::~RiakFile()
 	{
-
+		if(m_tile_store!=NULL)
+		{
+			m_tile_store->Release();
+			m_tile_store = NULL;
+		}
 	}
 
 	void RiakFile::Release()
 	{
 		delete this;
+	}
+
+	RiakTileStore* RiakFile::GetTileStore()
+	{
+		if(m_isFolder)
+		{
+			return NULL;
+		}
+		if(m_tile_store==NULL)
+		{
+			m_tile_store = new RiakTileStore(m_name.c_str(), m_key.c_str(), m_riak_fs);
+		}
+		return m_tile_store;
 	}
 
 	bool RiakFile::IsFolder()
@@ -169,7 +188,7 @@ namespace radi
 			{
 				l_key = riak_link_get_key(r_link);
 				rf = m_riak_fs->GetRiakFile(r_bucket, l_key);
-				if(strcmp(rf->GetName(), f_name))
+				if(!strcmp(rf->GetName(), f_name))
 				{
 					break;
 				}
