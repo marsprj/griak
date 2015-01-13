@@ -2,10 +2,11 @@
 #include "RiakFile.h"
 #include "RiakFileSet.h"
 
+#include <messages/riak_get.h>
+
 #include <limits.h>
 #include <sys/time.h>
-
-#include <messages/riak_get.h>
+#include <uuid/uuid.h>
 
 namespace radi
 {
@@ -14,6 +15,13 @@ namespace radi
 		struct timeval tv;
 		gettimeofday(&tv,NULL);
 		return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+	}
+
+	void griak_uuid_generate(char* uuid, size_t size)
+	{
+		uuid_t uu;
+		uuid_generate( uu );
+		uuid_unparse(uu, uuid);
 	}
 
 	RiakFS::RiakFS()
@@ -173,7 +181,7 @@ namespace radi
 		
 
 		RiakFile* rf = new RiakFile();
-		rf->Create(m_riak, m_cfg, robj);
+		rf->Create(this, m_riak, m_cfg, robj);
 
 
 		riak_get_response_free(m_cfg, &key_response);
@@ -224,7 +232,7 @@ namespace radi
 		riak_object* robj = robjs[0];
 
 		RiakFile* rf = new RiakFile();
-		rf->Create(m_riak, m_cfg, robj);
+		rf->Create(this, m_riak, m_cfg, robj);
 
 		riak_get_response_free(m_cfg, &robj_response);
 
@@ -431,7 +439,7 @@ namespace radi
 	}
 
 
-	RiakFile* RiakFS::CreateFile(const char* parent_key, const char* f_name, bool is_folder, const char* storage_type)
+	RiakFile* RiakFS::CreateFile(const char* parent_key, const char* f_name, bool is_folder, const char* data_type/*="PGIS"*/)
 	{
 		if(parent_key==NULL || f_name==NULL)
 		{
@@ -455,9 +463,9 @@ namespace radi
 		riak_object* p_robj = p_robjs[0];
 
 		// create riak file object
-		const char* f_key = "xxxxxxxxxxxxxxxxx";
-		bool ret = false;
-		ret = CreateRiakFile(f_name, f_key, is_folder, storage_type);
+		char f_key[PATH_MAX];
+		griak_uuid_generate(f_key, PATH_MAX);
+		bool ret = CreateRiakFile(f_name, f_key, is_folder, data_type);
 		if(!ret)
 		{
 			riak_get_response_free(m_cfg, &p_robj_response);
@@ -467,8 +475,7 @@ namespace radi
 		AddLink(p_robj, "rfs", f_key, "parent");
 		riak_get_response_free(m_cfg, &p_robj_response);
 
-
-		return NULL;
+		return GetRiakFile("rfs", f_key);
 	}
 
 	bool RiakFS::AddLink(riak_object* r_obj, const char* bucket, const char* key, const char* parent)
@@ -521,7 +528,7 @@ namespace radi
 		return (!err);
 	}
 
-	bool RiakFS::CreateRiakFile(const char* f_name, const char* f_key,  bool is_folder, const char* storage_type)
+	bool RiakFS::CreateRiakFile(const char* f_name, const char* f_key,  bool is_folder, const char* data_type)
 	{
 		riak_binary* rf_name = NULL;
 		riak_binary* rf_key = NULL;
@@ -689,6 +696,7 @@ namespace radi
 			riak_object_free(m_cfg, &r_obj);
 			return false;
 		}
+		const char* storage_type = is_folder ? "VALUE" : "BUCKET";
 		riak_binary* r_storage = riak_binary_new_shallow(m_cfg, strlen(storage_type), (riak_uint8_t*)storage_type);
 		if(r_storage==NULL)
 		{
@@ -761,12 +769,72 @@ namespace radi
 		riak_binary* r_modify_time = riak_binary_new_shallow(m_cfg, strlen(c_time), (riak_uint8_t*)c_time);
 		err = riak_pair_set_value(m_cfg, r_pair, r_modify_time);
 
+		riak_binary* r_status_key = NULL;
+		riak_binary* r_status = NULL;
+		riak_binary* r_size_key = NULL;
+		riak_binary* r_size = NULL;
+		riak_binary* r_data_type_key = NULL;
+		riak_binary* r_data_type = NULL;
+		if(!is_folder)
+		{
+			//---------------------------------------------------------------------------------------------------
+			// [meta_data]: set STATUS
+			//---------------------------------------------------------------------------------------------------
+			r_pair = riak_object_new_usermeta(m_cfg, r_obj);
+			const char* status_key = "STATUS";
+			r_status_key = riak_binary_new_shallow(m_cfg, strlen(status_key), (riak_uint8_t*)status_key);
+			err = riak_pair_set_key(m_cfg, r_pair, r_status_key);
+			const char* status = "COMPLETE";
+			r_status = riak_binary_new_shallow(m_cfg, strlen(status), (riak_uint8_t*)status);
+			err = riak_pair_set_value(m_cfg, r_pair, r_status);
+
+			//---------------------------------------------------------------------------------------------------
+			// [meta_data]: set SIZE
+			//---------------------------------------------------------------------------------------------------
+			r_pair = riak_object_new_usermeta(m_cfg, r_obj);
+			const char* size_key = "SIZE";
+			r_size_key = riak_binary_new_shallow(m_cfg, strlen(size_key), (riak_uint8_t*)size_key);
+			err = riak_pair_set_key(m_cfg, r_pair, r_size_key);
+			const char* ssize = "0";
+			r_size = riak_binary_new_shallow(m_cfg, strlen(ssize), (riak_uint8_t*)ssize);
+			err = riak_pair_set_value(m_cfg, r_pair, r_size);
+
+			//---------------------------------------------------------------------------------------------------
+			// [meta_data]: set DATA_TYPE
+			//---------------------------------------------------------------------------------------------------
+			if(data_type!=NULL)
+			{
+				r_pair = riak_object_new_usermeta(m_cfg, r_obj);
+				const char* data_type_key = "DATA_TYPE";
+				r_data_type_key = riak_binary_new_shallow(m_cfg, strlen(data_type_key), (riak_uint8_t*)data_type_key);
+				err = riak_pair_set_key(m_cfg, r_pair, r_data_type_key);
+				r_data_type = riak_binary_new_shallow(m_cfg, strlen(data_type), (riak_uint8_t*)data_type);
+				err = riak_pair_set_value(m_cfg, r_pair, r_data_type);	
+			}
+			
+		}
 		
 		// put file
 		riak_put_response *put_response = NULL;
 		riak_put_options *put_options = riak_put_options_new(m_cfg);
 		if(put_options==NULL)
 		{
+			if(r_status_key!=NULL)
+			{
+				riak_binary_free(m_cfg, &r_status_key);
+				riak_binary_free(m_cfg, &r_status);
+			}
+			if(r_size_key!=NULL)
+			{
+				riak_binary_free(m_cfg, &r_size_key);
+				riak_binary_free(m_cfg, &r_size);
+			}
+			if(r_data_type_key!=NULL)
+			{
+				riak_binary_free(m_cfg, &r_data_type_key);
+				riak_binary_free(m_cfg, &r_data_type);
+			}
+
 			riak_binary_free(m_cfg, &r_modify_time_key);
 			riak_binary_free(m_cfg, &r_modify_time);
 
@@ -803,6 +871,17 @@ namespace radi
 
 		riak_put_options_free(m_cfg, &put_options);
 		riak_put_response_free(m_cfg, &put_response);
+
+		if(r_status_key!=NULL)
+		{
+			riak_binary_free(m_cfg, &r_status_key);
+			riak_binary_free(m_cfg, &r_status);
+		}
+		if(r_size_key!=NULL)
+		{
+			riak_binary_free(m_cfg, &r_size_key);
+			riak_binary_free(m_cfg, &r_size);
+		}
 
 		riak_binary_free(m_cfg, &r_modify_time_key);
 		riak_binary_free(m_cfg, &r_modify_time);

@@ -6,7 +6,8 @@
 
 namespace radi
 {
-	class  RiakFile
+	class RiakFS;
+	class RiakFile
 	{
 	public:
 		RiakFile();
@@ -16,14 +17,18 @@ namespace radi
 
 		const char*	GetName();
 		void		SetName(const char* name);
+		const char*	GetKey();
 
 		const char*	GetDataType() const;
 		const char*	GetDataStore() const;
 
+		RiakFile*	GetFile(const char* f_name);
+		RiakFile*	CreateFile(const char* f_name, bool is_folder, const char* data_type="PGIS");
+
 		void		Release();
 
 	public:
-		bool		Create(riak_connection *rcxn, riak_config *rcfg, riak_object* robj);
+		bool		Create(RiakFS* riak_fs, riak_connection *rcxn, riak_config *rcfg, riak_object* robj);
 
 	private:
 		void		SetIsFolder(const char* val);
@@ -33,11 +38,13 @@ namespace radi
 	private:
 		bool		m_isFolder;
 		std::string	m_name;
+		std::string	m_key;
 		std::string	m_data_type;
 		std::string	m_data_store;
 
+		RiakFS		*m_riak_fs;
 		riak_connection *m_cxn;
-		riak_config 	 *m_cfg;
+		riak_config 	*m_cfg;
 	};
 }
 

@@ -11,6 +11,7 @@ namespace radi
 
 	class RiakFS
 	{
+		friend class RiakFile;
 		friend class RiakTileStore;
 	public:
 		RiakFS();
@@ -26,11 +27,12 @@ namespace radi
 		void		SetPort(const char* port);
 
 		RiakFile*	GetRoot();
+
 		RiakFile*	GetRiakFile(const char* bucket, const char* key);
 		RiakFile*	GetRiakFile(riak_binary* bucket, riak_binary* key);
 		RiakFile*	GetRiakFile(const char* bucket, const char* parent_key, const char* name);
 
-		RiakFile*	CreateFile(const char* parent_key, const char* f_name, bool is_folder, const char* storage_type);
+		RiakFile*	CreateFile(const char* parent_key, const char* f_name, bool is_folder, const char* data_type="PGIS");
 		bool		AddLink(riak_object* r_obj, const char* bucket, const char* key, const char* parent);
 
 		RiakFileSet*	ListFiles(const char* dir_key);
@@ -45,7 +47,8 @@ namespace radi
 		riak_get_response*	GetRiakObjects(const char* bucket, const char* key);
 		riak_get_response*	GetRiakObjects(riak_binary * bucket, riak_binary * key);
 		bool			HasRiakObject(const char* bucket, const char* key);
-		bool			CreateRiakFile(const char* f_name, const char* f_key, bool is_folder, const char* storage_type);
+
+		bool			CreateRiakFile(const char* f_name, const char* f_key, bool is_folder, const char* data_type);
 
 	private:
 		std::string	m_riak_server;

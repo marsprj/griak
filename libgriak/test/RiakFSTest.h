@@ -12,7 +12,10 @@ class RiakFSTest : public CppUnit::TestFixture
 	//CPPUNIT_TEST(GetRiakFileTest);
 	//CPPUNIT_TEST(ListRootFileTest);
 	//CPPUNIT_TEST(ListVectorFileTest);
-	CPPUNIT_TEST(CreateFolder);
+	//CPPUNIT_TEST(CreateFolder);
+	//CPPUNIT_TEST(CreateFile);
+	//CPPUNIT_TEST(CreateFile_2);
+	CPPUNIT_TEST(GetFile_By_File);
 	CPPUNIT_TEST_SUITE_END();
 public:
 	void setUp();
@@ -28,6 +31,11 @@ private:
 	void ListVectorFileTest();
 
 	void CreateFolder();
+	void CreateFile();
+	void CreateFile_2();
+
+	void GetFile_By_File();
+
 private:
 	radi::RiakFS m_riak;
 };
