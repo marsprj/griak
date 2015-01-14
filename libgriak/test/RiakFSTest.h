@@ -7,17 +7,15 @@
 class RiakFSTest : public CppUnit::TestFixture 
 {
 	CPPUNIT_TEST_SUITE(RiakFSTest);
-	//CPPUNIT_TEST(TestBuckets);
-	//CPPUNIT_TEST(GetRootFolderTest);
-	//CPPUNIT_TEST(GetRiakFileTest);
-	//CPPUNIT_TEST(ListRootFileTest);
-	//CPPUNIT_TEST(ListVectorFileTest);
-	//CPPUNIT_TEST(CreateFolder);
-	//CPPUNIT_TEST(CreateFile);
-	//CPPUNIT_TEST(CreateFile_2);
-	//CPPUNIT_TEST(GetFile_By_File);
-	//CPPUNIT_TEST(GetFile_By_Path);
-	//CPPUNIT_TEST(Riak_Store_Import);
+	CPPUNIT_TEST(GetRootFolderTest);
+	CPPUNIT_TEST(GetRiakFileByKeyTest);
+	CPPUNIT_TEST(ListRootFileByKeyTest);
+	CPPUNIT_TEST(CreateFolder);
+	CPPUNIT_TEST(CreateFile);
+	CPPUNIT_TEST(CreateFile_2);
+	CPPUNIT_TEST(GetFile_By_File);
+	CPPUNIT_TEST(GetFile_By_Path);
+	CPPUNIT_TEST(Riak_Store_Import);
 	CPPUNIT_TEST(RemoveFile);
 	CPPUNIT_TEST_SUITE_END();
 public:
@@ -27,11 +25,9 @@ public:
 private:
 	void TestBuckets();
 	void GetRootFolderTest();
-	void GetRiakFileTest();
+	void GetRiakFileByKeyTest();
 
-	void ListRootFileTest();
-
-	void ListVectorFileTest();
+	void ListRootFileByKeyTest();
 
 	void CreateFolder();
 	void CreateFile();

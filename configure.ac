@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.69])
+AC_PREREQ([2.68])
 AC_INIT([GRiak], [0.1.0], [admin@digitalearth.cn])
 AC_CONFIG_SRCDIR([libgriak/include/RiakFS.h])
 AC_CONFIG_HEADERS([config.h])

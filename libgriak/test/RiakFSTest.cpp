@@ -9,7 +9,7 @@ void RiakFSTest::setUp()
 {
 	printf("setUp\n");
 
-	m_riak.SetServer("192.168.111.104");
+	m_riak.SetServer("192.168.111.154");
 	m_riak.SetPort("8087");
 	if(!m_riak.Connect())
 	{
@@ -21,14 +21,6 @@ void RiakFSTest::tearDown()
 {
 	m_riak.Close();
 	printf("tearDown\n");
-}
-
-void RiakFSTest::TestBuckets()
-{
-	printf("----------------------------------\n");
-	printf("ListBuckets\n");
-
-	m_riak.GetBuckets();
 }
 
 void RiakFSTest::GetRootFolderTest()
@@ -43,10 +35,10 @@ void RiakFSTest::GetRootFolderTest()
 	rf->Release();
 }
 
-void RiakFSTest::GetRiakFileTest()
+void RiakFSTest::GetRiakFileByKeyTest()
 {
 	printf("----------------------------------\n");
-	printf("GetRiakFileTest\n");
+	printf("GetRiakFileByKeyTest\n");
 
 	radi::RiakFile* rf = NULL;
 	//rf = m_riak.GetRiakFile("rfs","root","vector");
@@ -57,33 +49,14 @@ void RiakFSTest::GetRiakFileTest()
 	rf->Release();
 }
 
-void RiakFSTest::ListRootFileTest()
+void RiakFSTest::ListRootFileByKeyTest()
 {
 	printf("----------------------------------\n");
-	printf("ListRootFileTest\n");
+	printf("ListRootFileByKeyTest\n");
 
 	radi::RiakFile* rf = NULL;
 	radi::RiakFileSet* files = NULL;
 	files = m_riak.ListFiles("root");
-
-	unsigned int count = files->GetCount();
-	for(unsigned int i=0; i<count; i++)
-	{
-		rf = files->GetRiakFile(i);
-		printf("%s\n", rf->GetName());	
-	}
-
-	files->Release();
-}
-
-void RiakFSTest::ListVectorFileTest()
-{
-	printf("----------------------------------\n");
-	printf("ListVectorFileTest\n");
-
-	radi::RiakFile* rf = NULL;
-	radi::RiakFileSet* files = NULL;
-	files = m_riak.ListFiles("7242ebad-1f74-43ed-b1b0-4ba4632967a3");
 
 	unsigned int count = files->GetCount();
 	for(unsigned int i=0; i<count; i++)
@@ -101,10 +74,9 @@ void RiakFSTest::CreateFolder()
 	printf("CreateFolder\n");
 
 	radi::RiakFile* rf = NULL;
-	bool is_folder = true;
-	const char* storage_type = "VALUE";
-	rf = m_riak.CreateFile("root", "mydir",is_folder);
-	//rf->Release();
+	rf = m_riak.CreateFile("root", "mydir",true);
+	CPPUNIT_ASSERT(rf!=NULL);
+	rf->Release();
 }
 
 void RiakFSTest::CreateFile()
@@ -114,7 +86,6 @@ void RiakFSTest::CreateFile()
 
 	radi::RiakFile* rf = NULL;
 	bool is_folder = true;
-	const char* data_type = "VALUE";
 	rf = m_riak.CreateFile("21c8d422-8f77-4ca3-8980-ecb2a867ddc5", "tardb2",false, "PGIS");
 	CPPUNIT_ASSERT(rf!=NULL);
 	rf->Release();
@@ -131,7 +102,6 @@ void RiakFSTest::CreateFile_2()
 	root = m_riak.GetRoot();
 	CPPUNIT_ASSERT(root!=NULL);
 
-	//rf = root->CreateFile("mydir3", true);
 	rf = root->GetFile("mydir3");
 	CPPUNIT_ASSERT(rf!=NULL);
 
@@ -168,7 +138,6 @@ void RiakFSTest::GetFile_By_Path()
 	printf("GetFile_By_Path\n");
 
 	radi::RiakFile* rf = NULL;
-	//rf = m_riak.GetFile("/test/wgs84_vector_2to9_Layers");
 	rf = m_riak.GetFile("/mydir3/tardb3");
 	CPPUNIT_ASSERT(rf!=NULL);
 	printf("[File Name]:%s\n", rf->GetName());
@@ -178,7 +147,6 @@ void RiakFSTest::GetFile_By_Path()
 void RiakFSTest::Riak_Store_Import()
 {
 	radi::RiakFile* rf = NULL;
-	//rf = m_riak.GetFile("/test/wgs84_vector_2to9_Layers");
 	rf = m_riak.GetFile("/mydir3/tardb3");
 	CPPUNIT_ASSERT(rf!=NULL);
 	printf("[File Name]:%s\n", rf->GetName());
