@@ -1,0 +1,94 @@
+griak-0.1.0
+
+------------------------------------------------------------------------
+
+Dependencies:
+	* riak-c-client
+	* automake
+	* autoconf
+	* libtool
+	* libevent-2.0.21
+	* protobuf-2.5.0
+	* protobuf-c-0.15
+	* cunit-2.1-2
+	* pkg-config
+	* pthreads
+	* glib-2.0
+	* doxygen (if you are building docs)
+	* riak_pb
+	* uuid
+	* cppunit
+	
+
+Building
+
+Ubuntu Server 12.04 /14.04
+1. build-essential
+	
+	sudo apt-get update
+	sudo apt-get install build-essential git automake libtool libcppunit-dev uuid-dev libglib2.0-dev -y
+
+
+2. protobuf
+	wget https://protobuf.googlecode.com/files/protobuf-2.5.0.tar.gz
+	tar fx protobuf-2.5.0.tar.gz
+	cd protobuf-2.5.0
+	./configure --prefix=/usr/local/protobuf-2.5.0
+	make
+	make check
+	sudo make install
+	cd ..
+
+3. protobuf-c
+	wget https://protobuf-c.googlecode.com/files/protobuf-c-0.15.tar.gz
+	tar fx protobuf-c-0.15.tar.gz
+	cd protobuf-c-0.15
+	./configure CXXFLAGS=-I/usr/local/protobuf-2.5.0/include LDFLAGS=-L/usr/local/protobuf-2.5.0/lib PATH=/usr/local/protobuf-2.5.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+	make
+	make check
+	sudo make install
+	cd ..
+
+4. libevent
+	https://github.com/downloads/libevent/libevent/libevent-2.0.21-stable.tar.gz
+	tar fx libevent-2.0.21-stable.tar.gz
+	cd libevent-2.0.21-stable
+	./configure
+	make
+	LD_LIBRARY_PATH=/usr/local/protobuf-2.5.0/lib:/usr/local/lib make check
+	sudo make install
+	cd ..
+
+5. CUnit-2.1-2-src.tar.bz2
+	wget http://sourceforge.net/projects/cunit/files/CUnit/2.1-2/CUnit-2.1-2-src.tar.bz2
+	tar fx CUnit-2.1-2-src.tar.bz2
+	cd CUnit-2.1-2
+	./configure
+	make
+	make check
+	sudo make install
+	cd ..
+
+6. riak-c-client
+	git clone https://github.com/basho/riak-c-client.git
+	cd riak-c-client
+	./autogen.sh
+	LDFLAGS="-Wl,-rpath=/usr/local/protobuf-2.5.0/lib,--enable-new-dtags" ./configure PKG_CONFIG_PATH=/usr/local/protobuf-2.5.0/lib/pkgconfig --prefix=/opt/riak-c-client
+	make
+	sudo make install
+
+	设置环境变量
+	# sudo vi /etc/profile
+	添加
+	export RIAK_C_HOME=/opt/riak-c-client
+	# source /etc/profile
+	# echo "/opt/riak-c-client/lib" > /etc/ld.so.conf.d/riak-c-client.conf
+	# ldconfig
+
+7. griak
+	git clone https://github.com/marsprj/griak.git
+	cd griak
+	./autogen.sh
+	./configure --prefix=/opt/griak
+	make
+	sudo make install
